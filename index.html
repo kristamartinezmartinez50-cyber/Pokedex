@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokédex</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #ffc0cb;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+      color: #d63384;
+    }
+    #search {
+      padding: 10px;
+      width: 80%;
+      max-width: 300px;
+      margin-bottom: 20px;
+      background-color: #ffe4e1;
+      border: 2px solid #ff69b4;
+    }
+    #pokemon-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+    .card {
+      background-color: #ffb6c1;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(219,112,147,0.3);
+      width: 150px;
+      padding: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      border: 2px solid #ff69b4;
+    }
+    .card:hover {
+      transform: scale(1.05);
+      background-color: #ffc0cb;
+    }
+    .card img {
+      width: 100px;
+      height: 100px;
+    }
+    #pagination {
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      background-color: #ff69b4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #ff1493;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pokédex</h1>
+  <input type="text" id="search" placeholder="Buscar Pokémon...">
+  <div id="pokemon-container"></div>
+  <div id="pagination">
+    <button id="prev">Anterior</button>
+    <button id="next">Siguiente</button>
+  </div>
+  <script>
+    const container = document.getElementById('pokemon-container');
+    const searchInput = document.getElementById('search');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    let offset = 0;
+    const limit = 20;
+    let allPokemon = [];
+    
+    async function fetchPokemon() {
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`);
+      const data = await res.json();
+      allPokemon = data.results;
+      displayPokemon(allPokemon);
+    }
+    
+    async function displayPokemon(pokemonList) {
+      container.innerHTML = '';
+      for (const pokemon of pokemonList) {
+        const res = await fetch(pokemon.url);
+        const data = await res.json();
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <h3>${data.name}</h3>
+          <img src="${data.sprites.front_default}" alt="${data.name}">
+        `;
+        card.onclick = () => showDetails(data);
+        container.appendChild(card);
+      }
+    }
+    
+    function showDetails(pokemon) {
+      alert(`Nombre: ${pokemon.name}\nAltura: ${pokemon.height}\nPeso: ${pokemon.weight}`);
+    }
+    
+    searchInput.addEventListener('input', () => {
+      const filtered = allPokemon.filter(p => p.name.includes(searchInput.value.toLowerCase()));
+      displayPokemon(filtered);
+    });
+    
+    prevBtn.onclick = () => {
+      if (offset >= limit) {
+        offset -= limit;
+        fetchPokemon();
+      }
+    };
+    
+    nextBtn.onclick = () => {
+      offset += limit;
+      fetchPokemon();
+    };
+    
+    fetchPokemon();
+  </script>
+</body>
+</html>
